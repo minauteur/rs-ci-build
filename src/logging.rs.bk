@@ -60,13 +60,13 @@ pub trait HasLogger {
 impl<'a, 'b> HasLogger for Request<'a, 'b> {
     fn get_logger(&mut self) -> Rc<Logger> {
         let req_logger = self.extensions
-            .entry::<RequestLogger>()
-            .or_insert_with(|| {
-                                let logger =
-                                    ROOT_LOGGER.new(o!("request_id" =>
+                             .entry::<RequestLogger>()
+                             .or_insert_with(|| {
+                                                 let logger =
+                                                     ROOT_LOGGER.new(o!("request_id" =>
                                        REQUEST_COUNTER.fetch_add(1, Ordering::Relaxed)));
-                                RequestLogger(RefCell::new(Rc::new(logger)))
-                            });
+                                                 RequestLogger(RefCell::new(Rc::new(logger)))
+                                             });
         match *req_logger {
             RequestLogger(ref inner) => inner.borrow().clone(),
         }
@@ -98,9 +98,9 @@ impl<'a, 'b> HasLogger for Request<'a, 'b> {
                         let new_logger = inner.borrow().new(values);
                         mem::replace(inner.borrow_mut().deref_mut(), Rc::new(new_logger));
                         Ok(())
-                    }
+                    },
                 }
-            }
+            },
             None => Err(LoggerError::NoLogger),
         }
 
