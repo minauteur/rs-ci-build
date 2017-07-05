@@ -13,7 +13,7 @@ use std::sync::{Arc, Mutex};
 
 use std::clone;
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize)]
 pub struct PostH {
     payload: Arc<Mutex<Vec<String>>>,
 }

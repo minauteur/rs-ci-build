@@ -1,5 +1,5 @@
 [package]
-name = "h_struct"
+name = "litmus_ci"
 version = "0.0.1"
 authors = ["Thom Pennington <Thom@litmushealth.com>"]
 

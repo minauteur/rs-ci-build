@@ -15,10 +15,12 @@ use router::Router;
 fn main() {
     let post_h = PostH::new(Arc::new(Mutex::new(Vec::new())));
     let data_h = DataH::new(post_h.clone());
+    let merge_h = MergeH::new(post_h.);
     let mut router = Router::new();
 
     router.get("/build", build::build_h, "build");
     router.get("/data", data_h, "data");
     router.post("/post", post_h, "post");
+    router.post("/merge", merge_h, "merge")
     Iron::new(router).http("localhost:8080").unwrap();
 }

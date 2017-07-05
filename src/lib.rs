@@ -2,6 +2,7 @@ pub mod build;
 pub mod post;
 pub mod logging;
 pub mod errors;
+pub mod hooks;
 
 extern crate urlencoded;
 extern crate iron;
@@ -17,8 +18,8 @@ extern crate plugin;
 
 #[macro_use]
 extern crate slog;
-// #[macro_use]
-// extern crate serde_derive;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
 #[macro_use]
 extern crate lazy_static;
