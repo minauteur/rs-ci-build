@@ -1,60 +1,66 @@
 use iron;
-use iron::prelude::*;
 use iron::middleware::Handler;
-use itertools::join;
+use iron::prelude::*;
 use iron::status;
+use itertools::join;
 use serde_json;
 use std::ops::DerefMut;
 
+use hooks::Shared;
 use logging::HasLogger;
-use std::{fmt, error, convert};
+use std::{convert, error, fmt};
 use std::io::Read;
 use std::sync::{Arc, Mutex};
 
 use std::clone;
 
-#[derive(Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct PostH {
-    payload: Arc<Mutex<Vec<String>>>,
+    payload: Shared,
 }
 
 impl PostH {
-    pub fn new(payload: Arc<Mutex<Vec<String>>>) -> PostH {
+    pub fn new(payload: Shared) -> PostH {
         PostH { payload: payload }
     }
 }
 
 impl Handler for PostH {
     fn handle(&self, req: &mut Request) -> IronResult<Response> {
-        let mut data = String::new();
+        let mut data_buf = String::new();
         let logger = req.get_logger();
-        if let Err(_) = req.body.read_to_string(&mut data) {
+        if let Err(_) = req.body.read_to_string(&mut data_buf) {
             error!(logger, "Failed reading request body"; "err" => "Failed reading POST to buffer");
-            return Err(IronError::new(PostError::ParseError,
-                                      (status::BadRequest,
-                                       "Failed reading POST request body to 'data' buffer.")));
+            return Err(IronError::new(PostError::ParseError, (
+                status::BadRequest,
+                "Failed reading POST request body to \
+                 'data' buffer.",
+            )));
         };
-        let mut post_payload = match self.payload.lock() {
+        let mut post_payload = match self.payload.data.lock() {
             Ok(vec) => vec,
             Err(e) => {
                 error!(logger, "Couldn't get payload from PostH"; "err" => %e);
-                return Err(IronError::new(PostError::MutexError,
-                                          (status::InternalServerError,
-                                           "Couldn't get payload from PostH")));
-            }
+                return Err(IronError::new(PostError::MutexError, (
+                    status::InternalServerError,
+                    "Couldn't get payload from PostH",
+                )));
+            },
         };
-        info!(logger, "Got payload from postH!"; "data" => &data);
-        post_payload.deref_mut().push(data);
+        info!(logger, "Got payload from postH!"; "data" => &data_buf);
+        post_payload.deref_mut().push(data_buf);
         Ok(Response::with((status::Ok, post_payload.join(" ;\n"))))
     }
 }
 
 pub struct DataH {
-    response: PostH,
+    response: Shared,
 }
 impl DataH {
-    pub fn new(res: PostH) -> DataH {
-        DataH { response: res }
+    pub fn new(res: Shared) -> DataH {
+        DataH {
+            response: res
+        }
     }
 }
 
@@ -62,14 +68,15 @@ impl DataH {
 impl Handler for DataH {
     fn handle(&self, req: &mut Request) -> IronResult<Response> {
         let logger = req.get_logger();
-        let mut html = match self.response.payload.lock() {
+        let mut html = match self.response.data.lock() {
             Ok(vec) => vec,
             Err(e) => {
                 error!(logger, "Couldn't get payload from DataH"; "err" => %e);
-                return Err(IronError::new(PostError::MutexError,
-                                          (status::InternalServerError,
-                                           "Couldn't get payload from DataH")));
-            }
+                return Err(IronError::new(PostError::MutexError, (
+                    status::InternalServerError,
+                    "Couldn't get payload from DataH",
+                )));
+            },
         };
         info!(logger, "GET request successful!"; "data" => html.deref_mut().join(";\n"));
         Ok(Response::with((status::Ok, html.join(";\n"))))
@@ -114,12 +121,14 @@ impl convert::Into<iron::error::IronError> for PostError {
         use self::PostError::*;
         match self {
             ParseError => {
-                IronError::new(self,
-                               (status::BadRequest, "I didn't understand your request."))
-            }
+                IronError::new(self, (
+                    status::BadRequest,
+                    "I didn't understand your request.",
+                ))
+            },
             MutexError => {
                 IronError::new(self, (status::InternalServerError, "There was a problem."))
-            }
+            },
         }
     }
 }
