@@ -63,7 +63,7 @@ impl Handler for HookH {
             )));
         };
         // info!(logger, "POST Received... Deserializing payload."; "payload" => &data);
-        println!("\nPOST received. Deserializing...\n");
+        println!("\nPOST received. Deserializing...");
         let webhook: PullRequestEvent = match serde_json::from_str(&mut data) {
             Ok(thing) => thing,
             Err(e) => {
@@ -78,17 +78,16 @@ impl Handler for HookH {
         let target_url = webhook.repository.html_url;
         match merged.as_str() {
             Some(string) => {
-                info!(logger, "merged_at: {}", &string);
                 string
             },
             None => {
-                info!(logger, "\n'merged_at': null\n");
+                info!(logger, "\nRepository at {} hasn't been merged yet!", &target_url);
                 let merge_null_msg = format!("\n'merged_at': null,\n'repo':...'url': {}\n",
                     target_url);
                 return Err(IronError::new(PostError::ParseError, (merge_null_msg)));
             }
         };
-        info!(logger, "\n'merged_at': {}\n'repository':...'url': {}\n", merged, target_url);
+        info!(logger, "\n'merged_at': {}\n'repository':...'url': {}", merged, target_url);
         let target_url_msg = format!("\n'merged_at': {},\n'repo':...'url': {}\n",
             merged, target_url);
         return Ok(Response::with((status::Ok, target_url_msg))); 
