@@ -10,12 +10,12 @@ use serde_derive;
 use serde_json;
 
 use logging::HasLogger;
-use post::{PostError, PostH};
+use post::{PostH, PostError};
 
-use std::{clone, convert, error, fmt};
-use std::collections::BTreeMap;
-use std::io::Read;
 use std::ops::DerefMut;
+use std::collections::BTreeMap;
+use std::{convert, error, fmt, clone};
+use std::io::Read;
 use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone, Deserialize)]
@@ -27,28 +27,30 @@ pub struct Shared {
 //for Deserializing
 #[derive(Debug, Deserialize)]
 pub struct PullRequestEvent {
-    pull_request: PullRequestObject,
+  pull_request: PullRequestObject,
 }
 #[derive(Debug, Deserialize)]
 pub struct PullRequestObject {
-    repo: RepoObject,
-    merged_at: bool,
+  repo: RepoObject,
+  merged_at: String,
 }
 #[derive(Debug, Deserialize)]
 pub struct RepoObject {
-    id: i32,
-    url: String,
+  id: i32,
+  url: String,
 }
 
 //handling the incoming request
 #[derive(Debug, Deserialize)]
 pub struct HookH {
-    shared_data: Shared,
+  shared_data: Shared
 }
 impl HookH {
-    pub fn new(s: Shared) -> HookH {
-        HookH { shared_data: s }
+  pub fn new(s: Shared) -> HookH {
+    HookH { 
+      shared_data: s,
     }
+  }
 }
 
 impl Handler for HookH {
@@ -58,7 +60,7 @@ impl Handler for HookH {
         if let Err(_) = req.body.read_to_string(&mut data) {
             return Err(IronError::new(PostError::ParseError, (
                 status::BadRequest,
-                "Failed reading POST request to buffer!",
+                "Failed reading POST request body to buffer!",
             )));
         };
         println!("Deserializing payload: {}", &data);
@@ -74,14 +76,16 @@ impl Handler for HookH {
         };
         let merged = webhook.pull_request.merged_at;
         let target_url = webhook.pull_request.repo.url;
-        if !merged {
-            info!(logger, "\n'merged_at': false\n");
-            let no_merge_msg = format!("\n'merged_at': false,\n'repo':...'url': {}\n",
+        if (merged != "False" && !merged.is_null()) {
+            info!(logger, "merged_at is either false or null!");
+            let no_merge_msg = format!(
+                "\nmerged_at either 'false' or null, target repo: {}\n",
                 target_url);
             return Err(IronError::new(PostError::ParseError, (no_merge_msg)));
         } else {
-            info!(logger, "merged_at: {}", &merged);
-            let target_url_msg = format!("\n'merged_at': {},\n'repo':...'url': {}\n", 
+            info!(logger,"merged_at: {}", merged);
+            let target_url_msg = format!(
+                "\nmerged_at: {}\n target repo: {}\n",
                 merged, target_url);
             return Ok(Response::with((status::Ok, target_url_msg)));
         }

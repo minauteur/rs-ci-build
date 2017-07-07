@@ -58,9 +58,7 @@ pub struct DataH {
 }
 impl DataH {
     pub fn new(res: Shared) -> DataH {
-        DataH {
-            response: res
-        }
+        DataH { response: res }
     }
 }
 
