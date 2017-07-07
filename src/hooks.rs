@@ -1,21 +1,13 @@
-use iron;
 use iron::middleware::Handler;
 use iron::prelude::*;
 use iron::status;
-use itertools::join;
-
-#[macro_use]
-use serde_derive;
 
 use serde_json;
 
 use logging::HasLogger;
-use post::{PostError, PostH};
+use post::PostError;
 
-use std::{clone, convert, error, fmt};
-use std::collections::BTreeMap;
 use std::io::Read;
-use std::ops::DerefMut;
 use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone, Deserialize)]
