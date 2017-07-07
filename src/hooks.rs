@@ -62,7 +62,7 @@ impl Handler for HookH {
             )));
         };
         // info!(logger, "POST Received... Deserializing payload."; "payload" => &data);
-        println!("\nPOST received. Deserializing...\n")
+        println!("\nPOST received. Deserializing...\n");
         let webhook: PullRequestEvent = match serde_json::from_str(&mut data) {
             Ok(thing) => thing,
             Err(e) => {
