@@ -2,7 +2,7 @@ use iron;
 use iron::middleware::Handler;
 use iron::prelude::*;
 use iron::status;
-use itertools::join;
+// use itertools::join;
 use serde_json;
 use std::ops::DerefMut;
 
@@ -10,9 +10,7 @@ use hooks::Shared;
 use logging::HasLogger;
 use std::{convert, error, fmt};
 use std::io::Read;
-use std::sync::{Arc, Mutex};
-
-use std::clone;
+// use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct PostH {
