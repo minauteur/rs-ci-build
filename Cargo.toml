@@ -1,20 +1,26 @@
 [package]
-name = "ci_build"
-version = "0.0.3"
+name = "litmus_ci"
+version = "0.0.1"
 authors = ["Thom Pennington <Thom@litmushealth.com>"]
 
 [dependencies]
 iron = "*"
-plugin = "*" # for iron
-typemap = "0.3.3"
 router = "*"
+typemap = "0.3.3"
+plugin = "*" # for iron
+
+serde = "0.9"
+serde_derive = "0.9"
+serde_json = "0.9"
+
 slog = "*"
 slog-term = "*"
 slog-async = "*"
 lazy_static = "0.2"
+
 urlencoded = "*"
 itertools = "*"
-clippy = {version = "*", optional = true}
 
+clippy = {version = "*", optional = true}
 [features]
 default = []

@@ -52,48 +52,44 @@ pub trait HasLogger {
     fn get_logger(&mut self) -> Rc<Logger>;
     fn try_get_logger(&self) -> Option<Rc<Logger>>;
     fn update_logger<T>(&mut self, values: OwnedKV<T>)
-    where
-        T: 'static + Send + Sync + RefUnwindSafe + KV;
+        where T: 'static + Send + Sync + RefUnwindSafe + KV;
     fn try_update_logger<T>(&self, values: OwnedKV<T>) -> Result<(), LoggerError>
-    where
-        T: 'static + Send + Sync + RefUnwindSafe + KV;
+        where T: 'static + Send + Sync + RefUnwindSafe + KV;
 }
 
 impl<'a, 'b> HasLogger for Request<'a, 'b> {
     fn get_logger(&mut self) -> Rc<Logger> {
-        let req_logger = self.extensions.entry::<RequestLogger>().or_insert_with(|| {
-            let logger = ROOT_LOGGER.new(
-                o!("request_id" =>
-                                       REQUEST_COUNTER.fetch_add(1, Ordering::Relaxed)),
-            );
-            RequestLogger(RefCell::new(Rc::new(logger)))
-        });
+        let req_logger = self.extensions
+                             .entry::<RequestLogger>()
+                             .or_insert_with(|| {
+                                                 let logger =
+                                                     ROOT_LOGGER.new(o!("request_id" =>
+                                       REQUEST_COUNTER.fetch_add(1, Ordering::Relaxed)));
+                                                 RequestLogger(RefCell::new(Rc::new(logger)))
+                                             });
         match *req_logger {
             RequestLogger(ref inner) => inner.borrow().clone(),
         }
     }
 
     fn try_get_logger(&self) -> Option<Rc<Logger>> {
-        self.extensions().get::<RequestLogger>().map(|logger| {
-            match *logger {
-                RequestLogger(ref inner) => inner.borrow().clone(),
-            }
-        })
+        self.extensions()
+            .get::<RequestLogger>()
+            .map(|logger| match *logger {
+                     RequestLogger(ref inner) => inner.borrow().clone(),
+                 })
     }
 
     fn update_logger<T>(&mut self, values: OwnedKV<T>)
-    where
-        T: 'static + Send + Sync + RefUnwindSafe + KV,
+        where T: 'static + Send + Sync + RefUnwindSafe + KV
     {
         let new_logger = self.get_logger().new(values);
-        self.extensions.insert::<RequestLogger>(RequestLogger(
-            RefCell::new(Rc::new(new_logger)),
-        ));
+        self.extensions
+            .insert::<RequestLogger>(RequestLogger(RefCell::new(Rc::new(new_logger))));
     }
 
     fn try_update_logger<T>(&self, values: OwnedKV<T>) -> Result<(), LoggerError>
-    where
-        T: 'static + Send + Sync + RefUnwindSafe + KV,
+        where T: 'static + Send + Sync + RefUnwindSafe + KV
     {
         match self.extensions().get::<RequestLogger>() {
             Some(ref_logger) => {
