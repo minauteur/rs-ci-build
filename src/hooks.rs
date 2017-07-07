@@ -32,7 +32,7 @@ pub struct PullRequestEvent {
 #[derive(Debug, Deserialize)]
 pub struct PullRequestObject {
     repo: RepoObject,
-    merged_at: bool,
+    merged_at: String,
 }
 #[derive(Debug, Deserialize)]
 pub struct RepoObject {
@@ -61,7 +61,8 @@ impl Handler for HookH {
                 "Failed reading POST request to buffer!",
             )));
         };
-        println!("Deserializing payload: {}", &data);
+        // info!(logger, "POST Received... Deserializing payload."; "payload" => &data);
+        println!("\nPOST received. Deserializing...\n")
         let webhook: PullRequestEvent = match serde_json::from_str(&mut data) {
             Ok(thing) => thing,
             Err(e) => {
