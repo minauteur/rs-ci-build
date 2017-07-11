@@ -6,9 +6,13 @@ use serde_json;
 
 use logging::HasLogger;
 use post::PostError;
+use config::Config;
 
 use std::io::Read;
 use std::sync::{Arc, Mutex};
+use std::ops::DerefMut;
+
+static REPO_CONFIG_LOC: &'static str = "/home/minauteur/Litmus/rs-ci-build/repo_config.toml";
 
 //for Deserializing
 #[derive(Debug, Deserialize)]
@@ -32,7 +36,7 @@ pub struct HookH {
     shared_data: Arc<Mutex<Vec<String>>>,
 }
 impl HookH {
-    pub fn new(s: Arc<Mutex<Vec<String>>>) -> HookH {
+    pub fn new(mut s: Arc<Mutex<Vec<String>>>) -> HookH {
         HookH { shared_data: s }
     }
 }
@@ -61,6 +65,7 @@ impl Handler for HookH {
         };
         let merged = webhook.pull_request.merged_at;
         let target_url = webhook.repository.html_url;
+        let name = webhook.repository.name.clone();
         match merged.as_str() {
             Some(string) => {
                 string
@@ -72,9 +77,28 @@ impl Handler for HookH {
                 return Err(IronError::new(PostError::ParseError, (merge_null_msg)));
             }
         };
-        info!(logger, "\n'merged_at': {}\n'repository':...'url': {}", merged, target_url);
-        let target_url_msg = format!("\n'merged_at': {},\n'repo':...'url': {}\n",
-            merged, target_url);
+        info!(logger, "\n'repo': {},\n'url': {},\n'merged_at': {},\n", name, target_url, merged);
+        let target_url_msg = format!("\n'repo': {},\n'url': {},\n'merged_at': {},\n",
+            name, target_url, merged);
+        let mut shared = match self.shared_data.lock() {
+            Ok(vec) => vec,
+            Err(e) => {
+                println!("{:?}", &e);
+                return Err(IronError::new(PostError::MutexError, (
+                    status::BadRequest,
+                    "Mutex Error: couldn't get shared data!",
+                )));
+            },
+        };
+        let config = Config::new(REPO_CONFIG_LOC.to_string());
+        for (repo, address) in config.repositories {
+            if repo.to_string() == webhook.repository.name.as_str() {
+                println!("\n{}, present and accounted for", &repo);
+            }
+            println!("\nrepo: {}, location on disk: {}", &repo, &address);
+            
+        }
+        shared.deref_mut().push(webhook.repository.name);
         return Ok(Response::with((status::Ok, target_url_msg))); 
     }
 }

@@ -18,15 +18,15 @@ use litmus_ci::config::Config;
 
 use std::sync::{Arc, Mutex};
 
-static REPO_CONFIG_LOC: &'static str = "/home/minauteur/Litmus/rs-ci-build/repo_config.toml";
+// static REPO_CONFIG_LOC: &'static str = "/home/minauteur/Litmus/rs-ci-build/repo_config.toml";
 
 fn main() {
-    let share = Arc::new(Mutex::new(Vec::new()));
+    let mut share = Arc::new(Mutex::new(Vec::new()));
 
-    let config = Config::new(REPO_CONFIG_LOC.to_string());
-    for (key, values) in config.repositories {
-        println!("\nrepository name: {}, location: {}", &key, &values);
-    }     
+    // let config = Config::new(REPO_CONFIG_LOC.to_string());
+    // for (key, values) in config.repositories {
+    //     println!("\nrepo: {}, location on disk: {}", &key, &values);
+    // }     
 
     let post_h = PostH::new(share.clone());
     let data_h = DataH::new(share.clone());

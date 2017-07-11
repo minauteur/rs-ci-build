@@ -1,9 +1,6 @@
-// use hooks;
 // use logging::HasLogger;
 
 use toml;
-
-use serde_json;
 
 use std::io::Read;
 use std::collections::BTreeMap;
