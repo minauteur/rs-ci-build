@@ -7,10 +7,11 @@ use serde_json;
 use logging::HasLogger;
 use post::PostError;
 use config::Config;
-
+use std::path::PathBuf;
 use std::io::Read;
 use std::sync::{Arc, Mutex};
 use std::ops::DerefMut;
+use std::process::Command;
 
 static REPO_CONFIG_LOC: &'static str = "/home/minauteur/Litmus/rs-ci-build/repo_config.toml";
 
@@ -71,14 +72,14 @@ impl Handler for HookH {
                 string
             },
             None => {
-                info!(logger, "\nRepository at {} hasn't been merged yet!", &target_url);
-                let merge_null_msg = format!("\n'merged_at': null,\n'repo':...'url': {}\n",
-                    target_url);
+                info!(logger, "Repository at {} hasn't been merged yet!", &target_url);
+                let merge_null_msg = format!("\n'merged_at': null, 'repo': {}, 'url': {}",
+                    name, target_url);
                 return Err(IronError::new(PostError::ParseError, (merge_null_msg)));
             }
         };
-        info!(logger, "\n'repo': {},\n'url': {},\n'merged_at': {},\n", name, target_url, merged);
-        let target_url_msg = format!("\n'repo': {},\n'url': {},\n'merged_at': {},\n",
+        // info!(logger, "\n'repo': {}, 'url': {}, 'merged_at': {},", name, target_url, merged);
+        let mut target_url_msg = format!("\n'repo': {}, 'url': {}, 'merged_at': {}, ",
             name, target_url, merged);
         let mut shared = match self.shared_data.lock() {
             Ok(vec) => vec,
@@ -90,15 +91,42 @@ impl Handler for HookH {
                 )));
             },
         };
+
+        shared.deref_mut().push(webhook.repository.name.clone());
+
         let config = Config::new(REPO_CONFIG_LOC.to_string());
+        
+        println!("Listing Repositories...");
+        
         for (repo, address) in config.repositories {
-            if repo.to_string() == webhook.repository.name.as_str() {
-                println!("\n{}, present and accounted for", &repo);
-            }
+            //first what's in the config file?
             println!("\nrepo: {}, location on disk: {}", &repo, &address);
-            
+            //match that to the name in the payload
+            if repo.to_string() == webhook.repository.name.as_str() {
+                //if we get a match, print, trigger the build, and move on to the next match.
+                info!(logger, "Attempting to 'cargo build' {} in {}", &repo, &address);
+                let mut resp = format!("\n'cargo build' ran in {}", &address);
+                let output: String = match Command::new("cargo")
+                    .arg("build")
+                    .current_dir((PathBuf::from(&address.clone())))
+                    .output() {
+                        Ok(info) => {
+                            //Ok result reads from stderr because 'cargo build' outputs to stderr by default.
+                            let mut info_str = String::from_utf8_lossy(&info.stderr);
+                            info!(logger, "Success!"; "stdout" => %info_str);
+                            format!("\nSuccess! stdout: {}", info_str)
+                        },
+                        Err(e) => {
+                            error!(logger, "'cargo build' failed!"; "reason"=> %e);
+                            format!("\n'cargo build' failed! Reason: {}", e.to_string())
+                        },
+                };
+                //'output' captures what we want in our http response, push it to resp after building.
+                resp.push_str(&output);
+                return Ok(Response::with((status::Ok, resp)))
+            }
         }
-        shared.deref_mut().push(webhook.repository.name);
+        //if there's no repo match, then return the deserialized info from payload in an Ok.
         return Ok(Response::with((status::Ok, target_url_msg))); 
     }
 }

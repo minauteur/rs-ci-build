@@ -6,8 +6,8 @@ use iron::status;
 use serde_json;
 
 use std::{convert, error, fmt};
-use std::ops::DerefMut;
 use std::io::Read;
+use std::ops::DerefMut;
 use std::sync::{Arc, Mutex};
 
 use logging::HasLogger;

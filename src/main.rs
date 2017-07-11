@@ -12,9 +12,9 @@ use iron::prelude::*;
 use router::Router;
 
 use litmus_ci::build;
-use litmus_ci::hooks::{HookH};
-use litmus_ci::post::{DataH, PostH};
 use litmus_ci::config::Config;
+use litmus_ci::hooks::HookH;
+use litmus_ci::post::{DataH, PostH};
 
 use std::sync::{Arc, Mutex};
 
@@ -26,12 +26,12 @@ fn main() {
     // let config = Config::new(REPO_CONFIG_LOC.to_string());
     // for (key, values) in config.repositories {
     //     println!("\nrepo: {}, location on disk: {}", &key, &values);
-    // }     
+    // }
 
     let post_h = PostH::new(share.clone());
     let data_h = DataH::new(share.clone());
     let hook_h = HookH::new(share.clone());
-    
+
 
     let mut router = Router::new();
 
