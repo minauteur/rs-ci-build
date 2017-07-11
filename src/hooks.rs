@@ -10,12 +10,6 @@ use post::PostError;
 use std::io::Read;
 use std::sync::{Arc, Mutex};
 
-#[derive(Debug, Clone, Deserialize)]
-//FIXME: I'll go back to using Arc<Mutex<Vec<String>>> directly before the next commit.
-pub struct Shared {
-    pub data: Arc<Mutex<Vec<String>>>,
-}
-
 //for Deserializing
 #[derive(Debug, Deserialize)]
 pub struct PullRequestEvent {
@@ -34,12 +28,11 @@ pub struct RepositoryObject {
 }
 
 //handling the incoming request
-#[derive(Debug, Deserialize)]
 pub struct HookH {
-    shared_data: Shared,
+    shared_data: Arc<Mutex<Vec<String>>>,
 }
 impl HookH {
-    pub fn new(s: Shared) -> HookH {
+    pub fn new(s: Arc<Mutex<Vec<String>>>) -> HookH {
         HookH { shared_data: s }
     }
 }

@@ -2,23 +2,22 @@ use iron;
 use iron::middleware::Handler;
 use iron::prelude::*;
 use iron::status;
-// use itertools::join;
+
 use serde_json;
-use std::ops::DerefMut;
 
-use hooks::Shared;
-use logging::HasLogger;
 use std::{convert, error, fmt};
+use std::ops::DerefMut;
 use std::io::Read;
-// use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex};
 
-#[derive(Debug, Clone, Deserialize)]
+use logging::HasLogger;
+
 pub struct PostH {
-    payload: Shared,
+    payload: Arc<Mutex<Vec<String>>>,
 }
 
 impl PostH {
-    pub fn new(payload: Shared) -> PostH {
+    pub fn new(payload: Arc<Mutex<Vec<String>>>) -> PostH {
         PostH { payload: payload }
     }
 }
@@ -35,7 +34,7 @@ impl Handler for PostH {
                  'data' buffer.",
             )));
         };
-        let mut post_payload = match self.payload.data.lock() {
+        let mut post_payload = match self.payload.lock() {
             Ok(vec) => vec,
             Err(e) => {
                 error!(logger, "Couldn't get payload from PostH"; "err" => %e);
@@ -52,10 +51,10 @@ impl Handler for PostH {
 }
 
 pub struct DataH {
-    response: Shared,
+    response: Arc<Mutex<Vec<String>>>,
 }
 impl DataH {
-    pub fn new(res: Shared) -> DataH {
+    pub fn new(res: Arc<Mutex<Vec<String>>>) -> DataH {
         DataH { response: res }
     }
 }
@@ -64,7 +63,7 @@ impl DataH {
 impl Handler for DataH {
     fn handle(&self, req: &mut Request) -> IronResult<Response> {
         let logger = req.get_logger();
-        let mut html = match self.response.data.lock() {
+        let mut html = match self.response.lock() {
             Ok(vec) => vec,
             Err(e) => {
                 error!(logger, "Couldn't get payload from DataH"; "err" => %e);

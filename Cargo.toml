@@ -9,9 +9,9 @@ router = "*"
 typemap = "0.3.3"
 plugin = "*" # for iron
 
-serde = "0.9"
-serde_derive = "0.9"
-serde_json = "0.9"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
 
 slog = "*"
 slog-term = "*"
@@ -20,6 +20,8 @@ lazy_static = "0.2"
 
 urlencoded = "*"
 itertools = "*"
+
+toml = "0.4"
 
 clippy = {version = "*", optional = true}
 [features]
