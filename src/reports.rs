@@ -1,6 +1,7 @@
 //! Reports module.
 //! defines behaviors for serializing/de-derializing build data for UI consumption
-
+use serde_json;
+use serde_json::Value;
 use rustc_serialize;
 
 use mustache::{self, MapBuilder};
@@ -241,9 +242,9 @@ impl Handler for ReportH {
             match_vec.push(any);
         }
 
-
         let l = get_if(name.clone());
         println!("{}", l);
+
         //filter to return by names matching "repos" param or else return the last 3 reports.
         let logs_to_report = logs.deref()
                                  .iter()
@@ -253,6 +254,14 @@ impl Handler for ReportH {
         })
                                  .take(u)
                                  .collect::<Vec<&Report>>();
+
+        //FOR FUTURE DB IMPLEMENTATION: Since Rusqlite comes with a ToSql implementation for Serde::Value, if we can get the whole of the archive as a string (which the below line demonstrates, then we can write the archive to DB so long as the row/table structure matches our Report/Reports structures respectively, correct?
+        let mut json_data = serde_json::to_string(&logs.clone().to_owned());
+        println!("archive flush: {:?}", &json_data);
+        // let db_rep_prep: Reports = serde_json::from_str(&json_data).unwrap();
+        // let db_reps = Reports {
+        //     reports: db_rep_prep.reports,
+        // };
 
         let nv = match_vec.clone();
 
