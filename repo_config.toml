@@ -1,0 +1,4 @@
+[repositories]
+litmus_ci = "/home/minauteur/Litmus/litmus_ci"
+rs-ci-build = "/home/minauteur/Litmus/rs-ci-build"
+rs-src = "/home/minauteur/Litmus/rs-src"

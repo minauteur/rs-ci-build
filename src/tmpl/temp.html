@@ -1,0 +1,98 @@
+<h1>Reports</h1>
+{{#bug}}
+{{/bug}}
+
+{{#reports}}
+    <li>
+        <a href="{{{url}}}">{{name}}</a><br><ul>
+            <li>{{{cargo_msg}}}</li>
+            <li>Timestamp: {{{time}}}</li>
+        </ul>
+    </li>
+{{/reports}}
+
+  <!-- <head>
+    <title>formDemo.html</title>
+    <meta charset = "UTF-8" />
+  </head>
+  <body>
+    <h1>Reports</h1>
+    <form id="repo-select" action="/reports" method="get">
+        <fieldset>
+          <legend>Select a Repository</legend>
+            <p>
+                <label>Repositories on File</label>
+                <select id="repositories"></select>
+            </p>
+        </fieldset>
+        <p>
+            How many reports?
+            <br> 
+            (Optional--leaving this field empty will return all reports on file for selected repo)
+            <br>
+            <br>
+            <input type="number" placeholder="enter a number" id="rep_num"></input>
+        </p>
+        <input type="button" value="Submit"></input>
+    </form>
+    <script type="javascript">
+    var selection = {reports};
+    var select = document.getElementById("repositories");
+    var options_obj = JSON.parse(selection);
+    for (var i=0; i < options_obj.repositories.length; i++) {
+        var option = document.createElement("option");
+        option.id = obj.repositories[i].id;
+        option.value = obj.repositories[i].id;
+        option.innerHTML = obj.repositories[i].repo_name;
+        select.appendChild(option);
+    }
+    </script>
+</body>
+</html>
+-->
+
+<!-- given JSON of the following structure (from the server)
+{
+"header": "Reports",
+"reports": [{
+  "name": "litmus-ci",
+  "time": "2017-07-07T20:18:13Z",
+  "url": "https://github.com/LitmusHealth/litmus-ci.git",
+  "cargo_msg": "Finished dev unoptimized + debuginfo target(s) in 0.0 secs"
+  }, {
+  "name": "litmus-ci",
+  "time": "2017-07-09T20:18:13Z",
+  "url": "https://github.com/LitmusHealth/litmus-ci.git",
+  "cargo_msg": "Finished dev unoptimized + debuginfo target(s) in 0.0 secs"
+  }
+]} -->
+
+<!-- and the following mustache template syntax
+<h1>{{header}}</h1>
+{{#bug}}
+{{/bug}}
+
+{{#reports}}
+    <li>
+        <a href="{{{url}}}">{{name}}</a><br><ul>
+            <li>{{{cargo_msg}}}</li>
+            <li>Timestamp: {{{time}}}</li>
+        </ul>
+    </li>
+{{/reports}} -->
+
+<!-- here is our expected html output
+
+<h1>Reports</h1>
+<li><a href="https://github.com/LitmusHealth/litmus-ci.git">litmus-ci</a>
+<br>
+<ul><li>Finished dev unoptimized + debuginfo target(s) in 0.0 secs</li>
+<li>Timestamp: 2017-07-07T20:18:13Z</li>
+</ul>
+</li>
+<li><a href="https://github.com/LitmusHealth/litmus-ci.git">litmus-ci</a>
+<br>
+<ul><li>Finished dev unoptimized + debuginfo target(s) in 0.0 secs</li>
+<li>Timestamp: 2017-07-09T20:18:13Z</li>
+</ul>
+</li> -->

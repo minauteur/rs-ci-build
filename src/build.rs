@@ -2,6 +2,11 @@
 //!
 //! This module contains the logic for a url-encoded "path" query
 //! for automating 'cargo build' remotely.
+use std::{error, io};
+use std::convert::AsRef;
+use std::fmt::{self, Display, Formatter};
+
+use std::path::Path;
 
 use errors::CIError;
 use iron::prelude::*;
@@ -10,8 +15,37 @@ use iron::status;
 use logging::HasLogger;
 
 use std::process::Command;
-
 use urlencoded::{UrlDecodingError, UrlEncodedQuery};
+
+#[derive(Debug, Clone, Deserialize, Eq, PartialEq)]
+pub struct Build {
+    out: String,
+}
+
+impl Build {
+    pub fn new<P: AsRef<Path>>(path: P) -> Build {
+        let cmd: String = match Command::new("cargo").arg("build").current_dir(&path).output() {
+            Ok(info) => {
+                    //'cargo build' outputs to stderr by default.
+                    let msg = String::from_utf8_lossy(&info.stderr);
+                    // info!(logger, "Success!"; "stdout" => %msg);
+                    msg.trim().to_string()
+            },
+            Err(e) => {
+                // error!(logger, "'cargo build' failed!"; "err" => %e);
+                format!("'cargo build' failed! Error: {}", e.to_string())
+            },
+        };
+        Build {
+            out: cmd,
+        }
+    }
+}
+impl Display for Build {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.out)
+    }
+}
 
 //handler function, called from main.rs upon http GET request to route /build
 pub fn build_h(req: &mut Request) -> IronResult<Response> {
@@ -58,16 +92,45 @@ pub fn build_h(req: &mut Request) -> IronResult<Response> {
         Ok(info) => {
             //Ok result reads from stderr because 'cargo build' outputs to stderr by default.
             let info_str = String::from_utf8_lossy(&info.stderr);
-            info!(logger, "\nSuccess!\n"; "stdout" => %info_str);
-            format!("\nSuccess!\noutput: {}\n", info_str)
+            info!(logger, "\nSuccess!"; "stdout" => %info_str);
+            format!("\nSuccess! output: {}", info_str)
         },
         Err(e) => {
-            error!(logger, "\n'cargo build' failed!\n"; "reason"=> %e);
-            format!("\n'cargo build' failed!\nReason: {}\n", e.to_string())
+            error!(logger, "\n'cargo build' failed!"; "reason"=> %e);
+            format!("\n'cargo build' failed! Reason: {}", e.to_string())
         },
     };
     //now that all of the component pieces of our possible http response are stored in 'output',
     //push them to resp and send away!
     resp.push_str(&output);
     Ok(Response::with((status::Ok, resp)))
+}
+
+#[derive(Debug)]
+pub enum BuildError {
+    IO(io::Error),
+    NotFound,
+}
+
+impl error::Error for BuildError {
+    fn description(&self) -> &str {
+        match *self {
+            BuildError::IO(ref e) => "I/O Error!",
+            BuildError::NotFound => "Location error!",
+        }
+    }
+    fn cause(&self) -> Option<&error::Error> {
+        match *self {
+            BuildError::IO(ref e) => Some(e as &error::Error),
+            _ => None,
+        }
+    }
+}
+impl Display for BuildError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        match *self {
+            BuildError::IO(ref e) => write!(f, "{:?}", &e),
+            BuildError::NotFound => write!(f, "No src or directory to build from!"),
+        }
+    }
 }
