@@ -1,9 +1,11 @@
 [package]
-name = "litmus_ci"
-version = "0.0.1"
-authors = ["Thom Pennington <Thom@litmushealth.com>"]
+name = "rs_build"
+version = "0.0.3"
+authors = ["Thom Pennington <thompennington@gmail.com>"]
 
 [dependencies]
+rustc-serialize = "0.3"
+chrono = { version = "0.3", features = ["serde"] }
 iron = "*"
 router = "*"
 typemap = "0.3.3"
@@ -23,6 +25,10 @@ itertools = "*"
 
 toml = "0.4"
 
-clippy = {version = "*", optional = true}
-[features]
-default = []
+rustache = "^0.1"
+mustache = "*"
+avro = { git = "https://github.com/kernelbandwidth/avro-rs.git" }
+
+rusqlite = "*"
+hyper = "*"
+rust-crypto = "^0.2"

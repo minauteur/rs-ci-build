@@ -1,0 +1,59 @@
+<body style="font-family: sans-serif;">
+        <form id="report-form" action="/reports" method="get">
+            <fieldset>
+                <legend>Select a Repository</legend>
+                <p>
+                    <label>repo: </label>
+                    <select name="repo" id="repo">
+                    {{#repo_sel}}
+                        <option name="{{name}}" value="{{name}}" {{#selected}}selected{{/selected}}>{{name}}</option>
+                    {{/repo_sel}}
+                    </select>
+                </p>
+                <p>
+
+                    <label>num: </label>
+                     <!-- <select name="num" id="num"> -->
+                    <input name="num" id="num" type="number"
+                        value="{{{num_sel}}}"
+                        step="1"
+                        min="0"
+                        max="50"
+                        style="width:5em;"></input>
+                    {{^num_sel}}
+                    <input name="num" type="number" placeholder="(0 Any)" step="1 " min="0" max="50" id="num" style="width:5em"></input><br>
+                    {{/num_sel}}
+                    <!-- {{#count}} -->
+                    <!-- <option name="{{.}} " value="{{.}} ">{{.}}</option> -->
+                    <!-- {{/count}} -->
+                    <!-- </select> -->
+                    <!-- <i><sup>Optional, leaving this blank will return up to the last 3 reports available...</sup></i><br> -->
+                </p>
+                <input type="submit" value="Submit"></input>
+            </fieldset>
+        </form>
+        {{#bug}} {{/bug}}
+        <br>
+        <hr>
+        <h3>Reports</h1>
+            <ul>
+                {{#reports}}
+                <li>
+                    <a href="{{{pr_url}}}">{{repo_name}}</a>&nbsp;<span style="font-size: 11px;">(link to PR)</span><br>
+                    <sup>&nbsp;&nbsp;&nbsp;&nbsp;<a href="{{{user_url}}}">{{user}}</a>'s pull request, title: <i>{{title}}</i></sup>
+                    <ul>
+                        <li><a href="{{{diff_url}}}">diff view</a></li>
+                        <li>cargo build output: {{{cargo_msg}}}</li>
+                        <li>timestamp: {{{time}}}</li>
+                    </ul>
+                </li>
+                {{/reports}}
+            </ul>
+            {{^reports}}
+            <p><i>No reports on file for selected repo!</i></p>
+            {{/reports}}
+            <p>
+                Authenticate to the GitHub API?
+                <a href="https://github.com/login/oauth/authorize?scope=user:email&client_id={{{client_id}}}">Click here</a> to begin!</a>
+</p>
+    </body>

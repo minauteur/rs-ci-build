@@ -1,0 +1,9 @@
+*~
+*.swp
+*.swo
+.DS_Store
+/target/
+Cargo.lock
+**/*.rs.bk
+**/*.rs.fmt
+test.log
