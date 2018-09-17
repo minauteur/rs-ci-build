@@ -1,2 +1,2 @@
 # rs-ci-build
-Test repo for CI/Build server application written in Rust.
+Basic CI/Build server application in Rust (Iron & Hyper).
